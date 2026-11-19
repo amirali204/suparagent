@@ -880,7 +880,8 @@ class CommunityMcpBridge:
                 logger.info("external tool result was not confirmed", slug=item["manifest"]["slug"],
                             schema=item["schema_digest"][:12])
                 if getattr(failure, "not_run", False):
-                    result = {"error": str(failure)[:400], "code": getattr(failure, "code", "provider_refused")}
+                    result = {"error": "The service refused the call before it ran. Check the connection in Settings.",
+                              "code": getattr(failure, "code", "provider_refused")}
                 else:
                     result = {"error": "The service did not confirm the result. The call may have run; check before retrying.",
                               "code": "outcome_unknown"}
