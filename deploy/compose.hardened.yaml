@@ -1,0 +1,17 @@
+# Experimental pilot only: run with -f compose.yaml -f deploy/compose.hardened.yaml.
+# This overlay does not expose a new port or mount any host path.
+# It deliberately keeps the default loopback-only host bind from compose.yaml.
+services:
+  suparagent:
+    # Replace the base publish list: environment variables cannot expose the pilot publicly.
+    ports: !override
+      - "127.0.0.1:8000:8000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m
+      - /run:rw,nosuid,nodev,size=16m

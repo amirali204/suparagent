@@ -4,3 +4,15 @@
 .vscode/
 
 .internal/
+
+# Never commit local credentials or server encryption keys.
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+suparagent.env
+**/suparagent.env
+*.pem
+*.key

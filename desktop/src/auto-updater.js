@@ -6,7 +6,7 @@
 
 const { describeError } = require("./updater");
 
-const RELEASES_PAGE = "https://github.com/Anil-matcha/suparagent/releases/tag/";
+const RELEASES_PAGE = "https://github.com/amirali204/suparagent/releases/tag/";
 
 function createAutoUpdater({ autoUpdater, currentVersion, beforeInstall = async () => {}, onState = () => {} }) {
   let state = { status: "idle", current: currentVersion };

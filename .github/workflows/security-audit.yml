@@ -1,0 +1,43 @@
+﻿# Advisory checks for the experimental fork; no repository write token.
+name: Security dependency audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "15 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  npm-advisories:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [frontend, desktop, mobile]
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - name: Reject high and critical runtime dependency advisories
+        working-directory: ${{ matrix.package }}
+        run: npm audit --package-lock-only --audit-level=high
+
+  python-advisories:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: astral-sh/setup-uv@v5.4.2
+      - name: Export exact locked backend dependency set
+        working-directory: backend
+        run: uv export --frozen --no-dev --no-emit-project --quiet -o /tmp/suparagent-audit-requirements.txt
+      - name: Reject known Python advisories
+        run: uvx pip-audit --disable-pip --no-deps -r /tmp/suparagent-audit-requirements.txt
+

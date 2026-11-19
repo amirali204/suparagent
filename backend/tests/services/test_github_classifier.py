@@ -181,7 +181,6 @@ def test_read_verb_with_anything_else_is_not_read(command: str) -> None:
         ("git -c color.ui=false log", "git.log"),
         ("git blame README.md", "git.blame"),
         ("git ls-files", "git.ls-files"),
-        ("git fetch origin", "git.fetch"),
         ("git branch --list", "git.branch"),
         ("git remote -v", "git.remote"),
         ("git status && git log --oneline", "git.log"),
@@ -195,3 +194,10 @@ def test_plain_read_only_git_stays_read(command: str, tool: str) -> None:
 def test_mutation_after_another_command_keeps_its_bucket() -> None:
     assert classify_bash_command("touch x && git commit -m x") == ("create", "github", "git.commit")
     assert classify_bash_command("touch x; git push") == ("publish", "github", "git.push")
+
+
+def test_git_fetch_requires_write_approval_even_if_called_a_read() -> None:
+    # Fetch can update refs, run a configured transport, and contact a remote.
+    # It must never inherit a standing read-only Git permission.
+    assert classify_bash_command("git fetch origin") == ("create", "github", "git.fetch")
+    assert classify_bash_command("git fetch --all") == ("create", "github", "git.fetch")

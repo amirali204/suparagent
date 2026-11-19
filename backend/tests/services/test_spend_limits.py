@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.db.models import Agent, Approval, Event, CommunityMcpConnection, CommunityMcpToolGrant, SpendLedger, Thread, Turn
 from app.db.models.routine import Routine, RoutineAppAction, RoutineRun
 from app.routers.agents import get_runtime as agents_runtime
+from app.db.session import get_db
 from app.routers.spend import router as spend_router
 from app.services import routine_uninterrupted, spend, thread_store
 from app.services.community_mcp_bridge import CommunityMcpBridge
@@ -226,6 +227,15 @@ async def api(world):
     app = FastAPI()
     app.include_router(spend_router, prefix="/api/v1")
     app.dependency_overrides[agents_runtime] = lambda: world.runtime
+
+    # The application's module-level engine may have been used by a previous
+    # pytest event loop. Bind API requests to this test's own engine, so asyncpg
+    # connections are never borrowed across loops or used concurrently.
+    async def test_db_session():
+        async with world.sessions() as db:
+            yield db
+
+    app.dependency_overrides[get_db] = test_db_session
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app, client=("127.0.0.1", 50000)), base_url="http://localhost") as client:
         yield client
 
@@ -296,7 +306,7 @@ def test_no_agent_facing_surface_can_reach_the_limits_or_the_switch():
     forbidden = ("SPEND_PER", "scheduled_paid_use", "services.spend", "import spend")
     for folder in ("team", "templates"):
         for path in (root / folder).rglob("*.py"):
-            text = path.read_text()
+            text = path.read_text(encoding="utf-8")
             assert not any(word in text for word in forbidden), (path.name, "must not touch spending limits")
 
 
@@ -343,7 +353,11 @@ async def test_a_call_that_clearly_never_ran_costs_nothing(world):
                   McpError("remote_error", "x", 502, not_run=True),
                   McpError("connect_failed", "x", 502)):
         result = await paid_call(world, Failing(error), max_cost_usd=0.5, q=error.code)
-        assert result["code"] == "outcome_unknown"
+        # A confirmed not-run error is safe to report precisely; no cost is charged.
+        expected_code = error.code if getattr(error, "not_run", False) else "outcome_unknown"
+        assert result["code"] == expected_code
+        # Never echo remote service error text (it may include credentials).
+        assert result["error"] != "x"
     rows = await ledger(world)
     assert [(r.status, r.settled_cents) for r in rows] == [("released", 0)] * 3
     assert [r.reason for r in rows] == ["not_run:authentication_failed", "not_run:remote_error", "not_run:connect_failed"]

@@ -11,7 +11,7 @@ _SEGMENT_SPLIT_RE = re.compile(r"&&|\|\||[;|&\n\r(){}`]")
 
 _READ_VERBS = {
     "status", "log", "diff", "show", "branch", "remote",
-    "fetch", "ls-files", "blame", "shortlog", "describe",
+    "ls-files", "blame", "shortlog", "describe",
 }
 _PUBLISH_VERBS = {"push"}
 # Everything else that mutates git's own state (commit, add, checkout,
