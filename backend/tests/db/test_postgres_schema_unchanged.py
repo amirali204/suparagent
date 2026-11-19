@@ -38,6 +38,7 @@ AGENT_SERVICE_TABLES = {
 }
 SPEND_TABLES = {"spend_ledger"}
 WORKFLOW_TABLES = {"workflow", "workflow_run"}
+MUAPI_TABLES = {"muapi_tool_grant"}
 PEOPLE_TABLES = {"person", "person_invite", "people_audit"}
 SPEND_TABLES = {"spend_ledger"}
 
@@ -96,11 +97,16 @@ def test_every_table_is_covered_by_one_of_the_snapshots():
         | AGENT_SERVICE_TABLES
         | SPEND_TABLES
         | WORKFLOW_TABLES
+        | MUAPI_TABLES
         | PEOPLE_TABLES
         | SPEND_TABLES
     )
     assert covered_tables == set(Base.metadata.tables)
     assert not original_tables() & F04_TABLES
+
+
+def test_muapi_tables_compile_to_their_reviewed_postgres_schema():
+    assert postgres_ddl(MUAPI_TABLES) == snapshot_text(HERE / "postgres_schema_muapi.sql")
 
 
 def test_settings_tables_compile_to_their_reviewed_postgres_schema():
