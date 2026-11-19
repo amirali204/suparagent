@@ -101,7 +101,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "Anil-matcha",
+        "owner": "amirali204",
         "repo": "suparagent",
         "releaseType": "prerelease"
       }

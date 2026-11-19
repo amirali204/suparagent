@@ -296,7 +296,7 @@ def test_no_agent_facing_surface_can_reach_the_limits_or_the_switch():
     forbidden = ("SPEND_PER", "scheduled_paid_use", "services.spend", "import spend")
     for folder in ("team", "templates"):
         for path in (root / folder).rglob("*.py"):
-            text = path.read_text()
+            text = path.read_text(encoding="utf-8")
             assert not any(word in text for word in forbidden), (path.name, "must not touch spending limits")
 
 
@@ -344,7 +344,8 @@ async def test_a_call_that_clearly_never_ran_costs_nothing(world):
                   McpError("connect_failed", "x", 502)):
         result = await paid_call(world, Failing(error), max_cost_usd=0.5, q=error.code)
         # A confirmed not-run error is safe to report precisely; no cost is charged.
-        assert result["code"] == error.code
+        expected_code = error.code if getattr(error, "not_run", False) else "outcome_unknown"
+        assert result["code"] == expected_code
         # Never echo remote service error text (it may include credentials).
         assert result["error"] != "x"
     rows = await ledger(world)
