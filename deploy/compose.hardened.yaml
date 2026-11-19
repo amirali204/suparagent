@@ -3,6 +3,9 @@
 # It deliberately keeps the default loopback-only host bind from compose.yaml.
 services:
   suparagent:
+    # Replace the base publish list: environment variables cannot expose the pilot publicly.
+    ports: !override
+      - "127.0.0.1:8000:8000"
     read_only: true
     cap_drop:
       - ALL

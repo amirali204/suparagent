@@ -21,7 +21,8 @@ def test_pilot_compose_isolation(tmp_path):
     env = dict(os.environ)
     env["SUPARAGENT_ENV_FILE"] = str(env_file)
     # Host overrides are not allowed in this reproducible CI security check.
-    for key in ("SUPARAGENT_BIND", "SUPARAGENT_PORT", "SUPARAGENT_IMAGE",
+    env["SUPARAGENT_BIND"] = "0.0.0.0"  # deliberate hostile override: overlay must win.
+    for key in ("SUPARAGENT_PORT", "SUPARAGENT_IMAGE",
                 "SUPARAGENT_SUBNET", "SUPARAGENT_GATEWAY",
                 "SUPARAGENT_DYNAMIC_RANGE"):
         env.pop(key, None)

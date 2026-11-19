@@ -7,15 +7,16 @@ secrets of another project.
 
 ## Preconditions
 
-Docker Engine with Compose, enough free disk space for a local build, and an
-existing account allowed to run Docker. Docker group access is privileged:
+Docker Engine with **Compose 2.24.4 or newer** (the overlay uses `!override`),
+enough free disk space for a local build, and an existing account allowed to
+run Docker. Docker group access is privileged:
 use a separate disposable VM if the host handles anything sensitive.
 
 This overlay:
 - runs the app as UID 10001 from the Dockerfile
 - drops all Linux capabilities and denies privilege escalation
 - makes the image filesystem read-only, with temporary `/tmp` and `/run`
-- limits process count and leaves the base port bound to loopback
+- limits process count and forces the published port to loopback, even if an environment override tries otherwise
 - mounts only the app-owned named volume at `/data`
 - does **not** grant the host's Docker socket, browser automation, or host files
 
