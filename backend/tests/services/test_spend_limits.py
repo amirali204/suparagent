@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.db.models import Agent, Approval, Event, CommunityMcpConnection, CommunityMcpToolGrant, SpendLedger, Thread, Turn
 from app.db.models.routine import Routine, RoutineAppAction, RoutineRun
 from app.routers.agents import get_runtime as agents_runtime
+from app.db.session import get_db
 from app.routers.spend import router as spend_router
 from app.services import routine_uninterrupted, spend, thread_store
 from app.services.community_mcp_bridge import CommunityMcpBridge
@@ -226,6 +227,15 @@ async def api(world):
     app = FastAPI()
     app.include_router(spend_router, prefix="/api/v1")
     app.dependency_overrides[agents_runtime] = lambda: world.runtime
+
+    # The application's module-level engine may have been used by a previous
+    # pytest event loop. Bind API requests to this test's own engine, so asyncpg
+    # connections are never borrowed across loops or used concurrently.
+    async def test_db_session():
+        async with world.sessions() as db:
+            yield db
+
+    app.dependency_overrides[get_db] = test_db_session
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app, client=("127.0.0.1", 50000)), base_url="http://localhost") as client:
         yield client
 
