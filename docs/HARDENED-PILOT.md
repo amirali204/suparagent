@@ -1,7 +1,7 @@
 # Hardened pilot deployment (not a production security certification)
 
 This guide is for testing **this fork** on a dedicated, disposable Linux VM,
-or locally in Docker Desktop, without touching any production system.
+or locally in Docker Desktop using a Linux/WSL Bash shell, without touching any production system.
 Do not install on a host that currently runs Hermes, AFM services, or holds
 secrets of another project.
 
@@ -26,9 +26,10 @@ the agent can safely handle untrusted content merely because it is containerized
 ## Verify the configuration before running
 
 ```bash
-git clone https://github.com/amirali204/suparagent.git
+git clone --branch security/hardening-pilot-20261119 --single-branch \
+  https://github.com/amirali204/suparagent.git
 cd suparagent
-# Check out a reviewed, pinned commit after the branch is approved.
+# Before public use, pin the exact reviewed commit; use main only after PR merge.
 git status --short
 umask 077
 touch suparagent.env
