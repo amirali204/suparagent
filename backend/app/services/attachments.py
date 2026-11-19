@@ -13,8 +13,9 @@ import os
 import re
 import unicodedata
 import uuid
-import xml.etree.ElementTree as ET
 import zipfile
+
+from defusedxml import ElementTree as ET
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -272,7 +273,7 @@ def extract_document_text(data: bytes, ext: str, name: str) -> str:
                     if sum(i.file_size for i in zf.infolist()) > _MAX_UNZIPPED:
                         raise ValueError("decompressed size too large")
                     content = zf.read(sfile)
-                    root = ET.fromstring(content)
+                    root = ET.fromstring(content, forbid_dtd=True)
                     texts = [elem.text for elem in root.iter() if elem.tag.endswith("}t") and elem.text]
                     if texts:
                         slides.append(f"--- Slide {idx} ---\n" + " ".join(texts))

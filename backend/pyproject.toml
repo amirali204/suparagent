@@ -26,6 +26,7 @@ dependencies = [
     "openpyxl>=3.1.5",
     "faster-whisper>=1.2.1",
     "av>=14,<19",
+    "defusedxml>=0.7.1,<1",
 ]
 
 [tool.fastapi]
